@@ -146,7 +146,7 @@ def _validate_url(url: str) -> str | None:
     return None
 
 
-class OpenLLMConfigFlow(ConfigFlow, domain=DOMAIN):
+class OpenLLMConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
     """Handle a config flow for OpenLLM Conversation.
 
     This config flow guides users through setting up an OpenAI-compatible
