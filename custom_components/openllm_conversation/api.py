@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from typing import Any, Final
 from urllib.parse import urlparse, urlunparse
@@ -180,7 +179,7 @@ class OpenLLMApiClient:
             raise OpenLLMConnectionError(
                 f"Failed to connect to {safe_url}: {err}"
             ) from err
-        except asyncio.TimeoutError as err:
+        except TimeoutError as err:
             raise OpenLLMConnectionError(
                 f"Timeout connecting to {safe_url}"
             ) from err
@@ -252,7 +251,7 @@ class OpenLLMApiClient:
             raise OpenLLMConnectionError(
                 f"Failed to connect to {safe_url}: {err}"
             ) from err
-        except asyncio.TimeoutError as err:
+        except TimeoutError as err:
             raise OpenLLMConnectionError(
                 f"Timeout waiting for response from {safe_url}"
             ) from err

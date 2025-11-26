@@ -7,7 +7,6 @@ from typing import Any, Final
 from urllib.parse import urlparse
 
 import voluptuous as vol
-
 from homeassistant.config_entries import (
     ConfigEntry,
     ConfigFlow,

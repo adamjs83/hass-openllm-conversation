@@ -7,6 +7,7 @@ OpenAI-compatible API endpoint, such as LiteLLM, Ollama, LocalAI, etc.
 from __future__ import annotations
 
 import logging
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
@@ -23,8 +24,6 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [Platform.CONVERSATION]
-
-type OpenLLMConfigEntry = ConfigEntry[dict[str, OpenLLMApiClient]]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

@@ -1,13 +1,134 @@
 name: Release
 
 on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
   release:
     types: [published]
 
 jobs:
-  release:
+  # Auto-create release on push to main
+  auto-release:
     runs-on: ubuntu-latest
-    name: Release
+    name: Auto Release
+    if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version from manifest
+        id: version
+        run: |
+          VERSION=$(jq -r '.version' custom_components/openllm_conversation/manifest.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Check if release exists
+        id: check_release
+        run: |
+          if gh release view "v${{ steps.version.outputs.version }}" &>/dev/null; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: Create release zip
+        if: steps.check_release.outputs.exists != 'true'
+        run: |
+          cd custom_components
+          zip -r ../openllm_conversation.zip openllm_conversation
+
+      - name: Create Release
+        if: steps.check_release.outputs.exists != 'true'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Release ${{ steps.version.outputs.version }}
+          body: |
+            ## OpenLLM Conversation v${{ steps.version.outputs.version }}
+
+            ### Installation
+
+            #### HACS (Recommended)
+            1. Add this repository to HACS as a custom repository
+            2. Search for "OpenLLM Conversation" and install
+            3. Restart Home Assistant
+
+            #### Manual
+            1. Download `openllm_conversation.zip`
+            2. Extract to `config/custom_components/`
+            3. Restart Home Assistant
+          files: openllm_conversation.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Handle manual/tag releases
+  tagged-release:
+    runs-on: ubuntu-latest
+    name: Tagged Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: version
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Update manifest version
+        run: |
+          jq --arg version "${{ steps.version.outputs.version }}" '.version = $version' \
+            custom_components/openllm_conversation/manifest.json > tmp.json
+          mv tmp.json custom_components/openllm_conversation/manifest.json
+
+      - name: Create release zip
+        run: |
+          cd custom_components
+          zip -r ../openllm_conversation.zip openllm_conversation
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ steps.version.outputs.version }}
+          body: |
+            ## OpenLLM Conversation v${{ steps.version.outputs.version }}
+
+            ### Installation
+
+            #### HACS (Recommended)
+            1. Add this repository to HACS as a custom repository
+            2. Search for "OpenLLM Conversation" and install
+            3. Restart Home Assistant
+
+            #### Manual
+            1. Download `openllm_conversation.zip`
+            2. Extract to `config/custom_components/`
+            3. Restart Home Assistant
+          files: openllm_conversation.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Handle published releases (update assets)
+  published-release:
+    runs-on: ubuntu-latest
+    name: Published Release
+    if: github.event_name == 'release'
     steps:
       - uses: actions/checkout@v4
 
