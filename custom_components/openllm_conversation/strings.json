@@ -29,6 +29,7 @@
         "title": "Configure Agent",
         "description": "Configure the conversation agent settings for model: {model}",
         "data": {
+          "llm_hass_api": "Control Home Assistant",
           "prompt_template": "System Prompt",
           "max_tokens": "Max Response Tokens",
           "temperature": "Temperature",
@@ -36,6 +37,7 @@
           "timeout": "Request Timeout (seconds)"
         },
         "data_description": {
+          "llm_hass_api": "Select an LLM API to give the assistant access to Home Assistant entities and services",
           "prompt_template": "The system prompt that defines the assistant's behavior",
           "max_tokens": "Maximum number of tokens in the response",
           "temperature": "Controls randomness (0 = deterministic, 2 = very random)",
@@ -62,6 +64,7 @@
         "title": "OpenLLM Conversation Options",
         "description": "Adjust the conversation agent settings.",
         "data": {
+          "llm_hass_api": "Control Home Assistant",
           "prompt_template": "System Prompt",
           "max_tokens": "Max Response Tokens",
           "temperature": "Temperature",
@@ -69,6 +72,7 @@
           "timeout": "Request Timeout (seconds)"
         },
         "data_description": {
+          "llm_hass_api": "Select an LLM API to give the assistant access to Home Assistant entities and services",
           "prompt_template": "The system prompt that defines the assistant's behavior",
           "max_tokens": "Maximum number of tokens in the response",
           "temperature": "Controls randomness (0 = deterministic, 2 = very random)",
