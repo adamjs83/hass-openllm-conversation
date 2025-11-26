@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Any
 from unittest.mock import patch
 
-import pytest
 from aioresponses import aioresponses
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
@@ -19,7 +18,6 @@ from custom_components.openllm_conversation.const import (
 )
 
 
-@pytest.mark.asyncio
 async def test_form_user_step(
     hass: HomeAssistant,
     mock_aioresponse: aioresponses,
@@ -34,7 +32,6 @@ async def test_form_user_step(
     assert result["errors"] == {}
 
 
-@pytest.mark.asyncio
 async def test_form_invalid_url(hass: HomeAssistant) -> None:
     """Test we handle invalid URL."""
     result = await hass.config_entries.flow.async_init(
@@ -52,7 +49,6 @@ async def test_form_invalid_url(hass: HomeAssistant) -> None:
     assert result["errors"] == {CONF_BASE_URL: "invalid_url_format"}
 
 
-@pytest.mark.asyncio
 async def test_form_invalid_url_scheme(hass: HomeAssistant) -> None:
     """Test we handle invalid URL scheme."""
     result = await hass.config_entries.flow.async_init(
@@ -70,13 +66,11 @@ async def test_form_invalid_url_scheme(hass: HomeAssistant) -> None:
     assert result["errors"] == {CONF_BASE_URL: "invalid_url_scheme"}
 
 
-@pytest.mark.asyncio
 async def test_form_cannot_connect(
     hass: HomeAssistant,
     mock_aioresponse: aioresponses,
 ) -> None:
     """Test we handle cannot connect error."""
-    # Don't mock the URL - will cause connection error
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
@@ -97,7 +91,6 @@ async def test_form_cannot_connect(
     assert result["step_id"] == "model"
 
 
-@pytest.mark.asyncio
 async def test_full_flow(
     hass: HomeAssistant,
     mock_aioresponse: aioresponses,
@@ -155,7 +148,6 @@ async def test_full_flow(
     assert result["options"]["max_tokens"] == 1024
 
 
-@pytest.mark.asyncio
 async def test_manual_model_entry(
     hass: HomeAssistant,
     mock_aioresponse: aioresponses,

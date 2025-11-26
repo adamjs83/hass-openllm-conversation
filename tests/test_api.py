@@ -42,9 +42,7 @@ class TestOpenLLMApiClient:
         assert "localhost:4000" in result
 
         # URL without credentials
-        result = OpenLLMApiClient._sanitize_url_for_logging(
-            "http://localhost:4000/v1"
-        )
+        result = OpenLLMApiClient._sanitize_url_for_logging("http://localhost:4000/v1")
         assert result == "http://localhost:4000/v1"
 
     @pytest.mark.asyncio
