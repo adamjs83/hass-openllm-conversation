@@ -233,6 +233,7 @@ class OpenLLMConversationEntity(
         ]
 
         # Add conversation history (limited by context_messages)
+        context_messages = int(context_messages)
         if context_messages > 0 and conv_data.messages:
             # Each turn has 2 messages (user + assistant), so multiply by 2
             max_history = context_messages * 2
@@ -252,8 +253,8 @@ class OpenLLMConversationEntity(
             response_text = await self._client.chat_completion(
                 model=model,
                 messages=messages,
-                max_tokens=max_tokens,
-                temperature=temperature,
+                max_tokens=int(max_tokens),
+                temperature=float(temperature),
             )
 
             # Update conversation history
