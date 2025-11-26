@@ -206,10 +206,6 @@ class OpenLLMConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
             if url_error:
                 errors[CONF_BASE_URL] = url_error
             else:
-                # Check for duplicate entry
-                await self.async_set_unique_id(base_url.lower().rstrip("/"))
-                self._abort_if_unique_id_configured()
-
                 self._base_url = base_url
                 self._api_key = user_input.get(CONF_API_KEY)
 
@@ -286,6 +282,11 @@ class OpenLLMConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
             if not model:
                 errors["base"] = "no_model_selected"
             else:
+                # Check for duplicate entry (same endpoint + model)
+                unique_id = f"{self._base_url.lower().rstrip('/')}_{model}"
+                await self.async_set_unique_id(unique_id)
+                self._abort_if_unique_id_configured()
+
                 self._selected_model = model
                 return await self.async_step_configure()
 
