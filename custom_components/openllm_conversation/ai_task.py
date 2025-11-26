@@ -102,6 +102,26 @@ class OpenLLMAITaskEntity(AITaskEntity):
             key, self._config_entry.data.get(key, default)
         )
 
+    def _get_structure_fields(self, structure: Any) -> list[str]:
+        """Extract field names from the structure schema.
+
+        Args:
+            structure: The voluptuous schema or dict defining the structure.
+
+        Returns:
+            List of field names from the structure.
+        """
+        if structure is None:
+            return []
+        # Try to get keys from the schema
+        if hasattr(structure, "schema"):
+            schema = structure.schema
+            if isinstance(schema, dict):
+                return list(schema.keys())
+        if isinstance(structure, dict):
+            return list(structure.keys())
+        return []
+
     async def _async_generate_data(
         self,
         task: ai_task.GenDataTask,
@@ -120,12 +140,18 @@ class OpenLLMAITaskEntity(AITaskEntity):
         max_tokens = self._get_option(CONF_MAX_TOKENS, DEFAULT_MAX_TOKENS)
         temperature = self._get_option(CONF_TEMPERATURE, DEFAULT_TEMPERATURE)
 
+        # Get structure field names for better prompting
+        structure_fields = self._get_structure_fields(task.structure)
+
         # Build the system prompt
         system_prompt = AI_TASK_SYSTEM_PROMPT
-        if task.structure:
+        if task.structure and structure_fields:
+            fields_str = ", ".join(f'"{f}"' for f in structure_fields)
             system_prompt += (
-                "\n\nYou must respond with valid JSON matching the requested structure. "
-                "Do not include any text outside of the JSON object."
+                f"\n\nIMPORTANT: You must respond with ONLY a valid JSON object. "
+                f"The JSON must have these fields: {fields_str}. "
+                f"Example format: {{{', '.join(f'\"{f}\": \"value\"' for f in structure_fields)}}}. "
+                f"Do not include any text before or after the JSON object."
             )
 
         # Build messages
@@ -152,14 +178,29 @@ class OpenLLMAITaskEntity(AITaskEntity):
             # Parse JSON response for structured output
             try:
                 # Try to extract JSON from the response
-                data = json.loads(response_text)
+                # Strip any markdown code blocks
+                clean_response = response_text.strip()
+                if clean_response.startswith("```"):
+                    # Remove markdown code block
+                    lines = clean_response.split("\n")
+                    clean_response = "\n".join(lines[1:-1] if lines[-1] == "```" else lines[1:])
+                data = json.loads(clean_response)
             except json.JSONDecodeError:
-                # Try to find JSON in the response
-                _LOGGER.warning(
-                    "Failed to parse JSON response, returning raw text: %s",
-                    response_text[:100],
-                )
-                data = {"text": response_text}
+                # If JSON parsing fails, map the raw text to the first structure field
+                if structure_fields:
+                    first_field = structure_fields[0]
+                    _LOGGER.debug(
+                        "Mapping raw text to field '%s': %s...",
+                        first_field,
+                        response_text[:100],
+                    )
+                    data = {first_field: response_text.strip()}
+                else:
+                    _LOGGER.warning(
+                        "Failed to parse JSON response: %s...",
+                        response_text[:100],
+                    )
+                    data = {"text": response_text}
 
             return ai_task.GenDataTaskResult(
                 conversation_id=chat_log.conversation_id,
