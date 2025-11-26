@@ -7,6 +7,7 @@ from typing import Any
 
 import pytest
 from aioresponses import aioresponses
+from homeassistant.core import HomeAssistant
 
 from custom_components.openllm_conversation.const import (
     CONF_API_KEY,
@@ -19,6 +20,16 @@ from custom_components.openllm_conversation.const import (
 def auto_enable_custom_integrations(enable_custom_integrations: None) -> None:
     """Enable custom integrations for all tests."""
     return
+
+
+@pytest.fixture(autouse=True)
+async def setup_conversation(hass: HomeAssistant) -> None:
+    """Set up the conversation component."""
+    # Mock the conversation component to avoid dependency issues
+    hass.data["conversation"] = {}
+
+    # Register conversation as a loaded component
+    hass.config.components.add("conversation")
 
 
 @pytest.fixture
