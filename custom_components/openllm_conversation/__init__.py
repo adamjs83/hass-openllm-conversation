@@ -9,7 +9,6 @@ from __future__ import annotations
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
 from .api import OpenLLMApiClient
@@ -23,7 +22,9 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[Platform] = [Platform.CONVERSATION]
+# Use string for compatibility with older HA versions where Platform.CONVERSATION
+# may not exist
+PLATFORMS: list[str] = ["conversation"]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
