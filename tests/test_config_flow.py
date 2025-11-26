@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
-from aioresponses import aioresponses
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
@@ -19,11 +18,7 @@ from custom_components.openllm_conversation.const import (
 )
 
 
-async def test_form_user_step(
-    hass: HomeAssistant,
-    mock_aioresponse: aioresponses,
-    mock_models_response: list[dict[str, Any]],
-) -> None:
+async def test_form_user_step(hass: HomeAssistant) -> None:
     """Test we get the user form."""
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
@@ -67,10 +62,7 @@ async def test_form_invalid_url_scheme(hass: HomeAssistant) -> None:
     assert result["errors"] == {CONF_BASE_URL: "invalid_url_scheme"}
 
 
-async def test_form_cannot_connect(
-    hass: HomeAssistant,
-    mock_aioresponse: aioresponses,
-) -> None:
+async def test_form_cannot_connect(hass: HomeAssistant) -> None:
     """Test we handle cannot connect error."""
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
@@ -79,6 +71,9 @@ async def test_form_cannot_connect(
     with patch(
         "custom_components.openllm_conversation.config_flow.OpenLLMApiClient.list_models",
         side_effect=OpenLLMApiError("Connection refused"),
+    ), patch(
+        "custom_components.openllm_conversation.config_flow.OpenLLMApiClient.close",
+        new_callable=AsyncMock,
     ):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
@@ -94,27 +89,29 @@ async def test_form_cannot_connect(
 
 async def test_full_flow(
     hass: HomeAssistant,
-    mock_aioresponse: aioresponses,
     mock_models_response: list[dict[str, Any]],
 ) -> None:
     """Test complete config flow."""
-    mock_aioresponse.get(
-        "http://localhost:4000/v1/models",
-        payload={"data": mock_models_response},
-    )
-
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
 
     # Step 1: Enter URL
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        {
-            CONF_BASE_URL: "http://localhost:4000/v1",
-            CONF_API_KEY: "test-key",
-        },
-    )
+    with patch(
+        "custom_components.openllm_conversation.config_flow.OpenLLMApiClient.list_models",
+        new_callable=AsyncMock,
+        return_value=mock_models_response,
+    ), patch(
+        "custom_components.openllm_conversation.config_flow.OpenLLMApiClient.close",
+        new_callable=AsyncMock,
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_BASE_URL: "http://localhost:4000/v1",
+                CONF_API_KEY: "test-key",
+            },
+        )
 
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "model"
@@ -149,26 +146,26 @@ async def test_full_flow(
     assert result["options"]["max_tokens"] == 1024
 
 
-async def test_manual_model_entry(
-    hass: HomeAssistant,
-    mock_aioresponse: aioresponses,
-) -> None:
+async def test_manual_model_entry(hass: HomeAssistant) -> None:
     """Test manual model entry when API doesn't return models."""
-    mock_aioresponse.get(
-        "http://localhost:4000/v1/models",
-        payload={"data": []},
-    )
-
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        {
-            CONF_BASE_URL: "http://localhost:4000/v1",
-        },
-    )
+    with patch(
+        "custom_components.openllm_conversation.config_flow.OpenLLMApiClient.list_models",
+        new_callable=AsyncMock,
+        return_value=[],
+    ), patch(
+        "custom_components.openllm_conversation.config_flow.OpenLLMApiClient.close",
+        new_callable=AsyncMock,
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_BASE_URL: "http://localhost:4000/v1",
+            },
+        )
 
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "model"

@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Generator
 from typing import Any
 
 import pytest
-from aioresponses import aioresponses
 from homeassistant.core import HomeAssistant
 
 from custom_components.openllm_conversation.const import (
@@ -66,13 +64,6 @@ def mock_chat_response() -> dict[str, Any]:
             "total_tokens": 21,
         },
     }
-
-
-@pytest.fixture
-def mock_aioresponse() -> Generator[aioresponses, None, None]:
-    """Return aioresponses mock."""
-    with aioresponses() as m:
-        yield m
 
 
 @pytest.fixture
