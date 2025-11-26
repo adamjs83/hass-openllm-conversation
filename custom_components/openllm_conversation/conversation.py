@@ -184,8 +184,10 @@ class OpenLLMConversationEntity(
             A formatted string containing entity context from the LLM API.
         """
         llm_api_id = self._get_option(CONF_LLM_HASS_API, "none")
+        _LOGGER.debug("LLM API ID configured: %s", llm_api_id)
 
         if llm_api_id == "none" or not llm_api_id:
+            _LOGGER.debug("No LLM API configured, skipping context")
             return ""
 
         try:
@@ -195,14 +197,20 @@ class OpenLLMConversationEntity(
                 llm.LLMContext(
                     platform=DOMAIN,
                     context=None,
-                    user_prompt=None,
                     language="*",
                     assistant="conversation",
                     device_id=None,
                 ),
             )
             if llm_api and llm_api.api_prompt:
+                _LOGGER.debug(
+                    "Got LLM API prompt (%d chars): %s...",
+                    len(llm_api.api_prompt),
+                    llm_api.api_prompt[:200] if len(llm_api.api_prompt) > 200 else llm_api.api_prompt
+                )
                 return f"\n\n{llm_api.api_prompt}"
+            else:
+                _LOGGER.debug("LLM API returned no prompt")
         except Exception as err:
             _LOGGER.warning("Failed to get LLM API context: %s", err)
 
@@ -264,6 +272,11 @@ class OpenLLMConversationEntity(
 
         # Build system prompt with LLM context
         full_system_prompt = f"{prompt_template}{llm_context}"
+        _LOGGER.debug(
+            "Full system prompt (%d chars), context added: %s",
+            len(full_system_prompt),
+            bool(llm_context)
+        )
 
         # Build messages list
         messages: list[dict[str, str]] = [
