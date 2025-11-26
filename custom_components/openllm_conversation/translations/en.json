@@ -1,0 +1,81 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to OpenAI-Compatible API",
+        "description": "Enter the base URL of your OpenAI-compatible API provider (e.g., LiteLLM, Ollama, LocalAI).\n\nExample: {example_url}",
+        "data": {
+          "base_url": "API Base URL",
+          "api_key": "API Key (optional)"
+        },
+        "data_description": {
+          "base_url": "The base URL of your API endpoint, including /v1 if needed",
+          "api_key": "API key for authentication (leave empty if not required)"
+        }
+      },
+      "model": {
+        "title": "Select Model",
+        "description": "Select a model from the list or enter one manually.",
+        "data": {
+          "model": "Model",
+          "manual_model": "Manual Model ID"
+        },
+        "data_description": {
+          "model": "Select a model from the available models",
+          "manual_model": "Enter a model ID manually if not listed"
+        }
+      },
+      "configure": {
+        "title": "Configure Agent",
+        "description": "Configure the conversation agent settings for model: {model}",
+        "data": {
+          "prompt_template": "System Prompt",
+          "max_tokens": "Max Response Tokens",
+          "temperature": "Temperature",
+          "context_messages": "Conversation History Length",
+          "timeout": "Request Timeout (seconds)"
+        },
+        "data_description": {
+          "prompt_template": "The system prompt that defines the assistant's behavior",
+          "max_tokens": "Maximum number of tokens in the response",
+          "temperature": "Controls randomness (0 = deterministic, 2 = very random)",
+          "context_messages": "Number of previous conversation turns to include",
+          "timeout": "How long to wait for API responses"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to the API. Please check the URL.",
+      "invalid_auth": "Invalid API key or authentication failed.",
+      "invalid_url_format": "Invalid URL format. Please enter a valid URL.",
+      "invalid_url_scheme": "URL must use http or https protocol.",
+      "no_model_selected": "Please select a model or enter one manually.",
+      "unknown": "An unexpected error occurred."
+    },
+    "abort": {
+      "already_configured": "This API endpoint is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "OpenLLM Conversation Options",
+        "description": "Adjust the conversation agent settings.",
+        "data": {
+          "prompt_template": "System Prompt",
+          "max_tokens": "Max Response Tokens",
+          "temperature": "Temperature",
+          "context_messages": "Conversation History Length",
+          "timeout": "Request Timeout (seconds)"
+        },
+        "data_description": {
+          "prompt_template": "The system prompt that defines the assistant's behavior",
+          "max_tokens": "Maximum number of tokens in the response",
+          "temperature": "Controls randomness (0 = deterministic, 2 = very random)",
+          "context_messages": "Number of previous conversation turns to include",
+          "timeout": "How long to wait for API responses"
+        }
+      }
+    }
+  }
+}
