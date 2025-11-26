@@ -22,9 +22,8 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-# Use string for compatibility with older HA versions where Platform.CONVERSATION
-# may not exist
-PLATFORMS: list[str] = ["conversation"]
+# Use string for compatibility with older HA versions
+PLATFORMS: list[str] = ["conversation", "ai_task"]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
