@@ -10,6 +10,7 @@ from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
+from custom_components.openllm_conversation.api import OpenLLMApiError
 from custom_components.openllm_conversation.const import (
     CONF_API_KEY,
     CONF_BASE_URL,
@@ -77,7 +78,7 @@ async def test_form_cannot_connect(
 
     with patch(
         "custom_components.openllm_conversation.config_flow.OpenLLMApiClient.list_models",
-        side_effect=Exception("Connection refused"),
+        side_effect=OpenLLMApiError("Connection refused"),
     ):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
