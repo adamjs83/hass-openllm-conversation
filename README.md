@@ -5,6 +5,16 @@
 
 A Home Assistant custom integration that connects to any OpenAI-compatible API provider, enabling conversation agents powered by your choice of LLM backend.
 
+## Why I Made This
+
+I've been experimenting with AI agents inside Home Assistant and wanted more flexibility than the built-in LLM integrations offer. Specifically, I wanted to:
+
+- **Centralize my LLM access** - Use a single proxy (LiteLLM) to manage multiple AI providers
+- **Have more choice** - Not be limited to just the providers Home Assistant natively supports
+- **Access advanced features** - Connect to LLMs that have access to vector stores, MCP (Model Context Protocol), and other tools through LiteLLM
+
+This is a work in progress. Feedback, suggestions, and contributions are welcome!
+
 ## Supported Providers
 
 This integration works with any OpenAI-compatible API, including:
