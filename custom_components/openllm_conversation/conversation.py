@@ -9,9 +9,8 @@ from typing import Any, Final, Literal
 from homeassistant.components import conversation
 from homeassistant.components.conversation import trace
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_LLM_HASS_API
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import intent, llm
+from homeassistant.helpers import intent
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import ulid
@@ -177,45 +176,6 @@ class OpenLLMConversationEntity(
                 "Trimmed conversation history to %d entries", MAX_CONVERSATIONS
             )
 
-    async def _get_llm_context(self) -> str:
-        """Get context from the configured LLM API (like Assist).
-
-        Returns:
-            A formatted string containing entity context from the LLM API.
-        """
-        llm_api_id = self._get_option(CONF_LLM_HASS_API, "none")
-        _LOGGER.debug("LLM API ID configured: %s", llm_api_id)
-
-        if llm_api_id == "none" or not llm_api_id:
-            _LOGGER.debug("No LLM API configured, skipping context")
-            return ""
-
-        try:
-            llm_api = await llm.async_get_api(
-                self.hass,
-                llm_api_id,
-                llm.LLMContext(
-                    platform=DOMAIN,
-                    context=None,
-                    language="*",
-                    assistant="conversation",
-                    device_id=None,
-                ),
-            )
-            if llm_api and llm_api.api_prompt:
-                _LOGGER.debug(
-                    "Got LLM API prompt (%d chars): %s...",
-                    len(llm_api.api_prompt),
-                    llm_api.api_prompt[:200] if len(llm_api.api_prompt) > 200 else llm_api.api_prompt
-                )
-                return f"\n\n{llm_api.api_prompt}"
-            else:
-                _LOGGER.debug("LLM API returned no prompt")
-        except Exception as err:
-            _LOGGER.warning("Failed to get LLM API context: %s", err)
-
-        return ""
-
     async def async_added_to_hass(self) -> None:
         """Handle entity being added to hass.
 
@@ -267,20 +227,9 @@ class OpenLLMConversationEntity(
         conv_data = self._conversation_history[conversation_id]
         conv_data.touch()
 
-        # Get LLM API context (includes exposed entities from Assist)
-        llm_context = await self._get_llm_context()
-
-        # Build system prompt with LLM context
-        full_system_prompt = f"{prompt_template}{llm_context}"
-        _LOGGER.debug(
-            "Full system prompt (%d chars), context added: %s",
-            len(full_system_prompt),
-            bool(llm_context)
-        )
-
         # Build messages list
         messages: list[dict[str, str]] = [
-            {"role": "system", "content": full_system_prompt}
+            {"role": "system", "content": prompt_template}
         ]
 
         # Add conversation history (limited by context_messages)

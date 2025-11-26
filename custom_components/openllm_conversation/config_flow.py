@@ -14,13 +14,10 @@ from homeassistant.config_entries import (
     OptionsFlow,
 )
 from homeassistant.core import callback
-from homeassistant.const import CONF_LLM_HASS_API
-from homeassistant.helpers import llm
 from homeassistant.helpers.selector import (
     NumberSelector,
     NumberSelectorConfig,
     NumberSelectorMode,
-    SelectOptionDict,
     SelectSelector,
     SelectSelectorConfig,
     SelectSelectorMode,
@@ -60,9 +57,7 @@ MANUAL_MODEL_ENTRY: Final = "__manual__"
 VALID_URL_SCHEMES: Final = frozenset({"http", "https"})
 
 
-def _build_options_schema(
-    hass: Any, defaults: dict[str, Any] | None = None
-) -> vol.Schema:
+def _build_options_schema(defaults: dict[str, Any] | None = None) -> vol.Schema:
     """Build the options schema for agent configuration.
 
     This helper function creates the voluptuous schema for configuring
@@ -70,7 +65,6 @@ def _build_options_schema(
     initial config flow and the options flow.
 
     Args:
-        hass: Home Assistant instance for getting available LLM APIs.
         defaults: Optional dictionary of default values for the form fields.
 
     Returns:
@@ -78,29 +72,8 @@ def _build_options_schema(
     """
     defaults = defaults or {}
 
-    # Get available LLM APIs (like Assist)
-    llm_apis: list[SelectOptionDict] = [
-        SelectOptionDict(label="None", value="none"),
-    ]
-    if hass:
-        llm_apis.extend(
-            SelectOptionDict(label=api.name, value=api.id)
-            for api in llm.async_get_apis(hass)
-        )
-
     return vol.Schema(
         {
-            vol.Optional(
-                CONF_LLM_HASS_API,
-                description={
-                    "suggested_value": defaults.get(CONF_LLM_HASS_API, "none")
-                },
-            ): SelectSelector(
-                SelectSelectorConfig(
-                    options=llm_apis,
-                    mode=SelectSelectorMode.DROPDOWN,
-                )
-            ),
             vol.Optional(
                 CONF_PROMPT_TEMPLATE,
                 default=defaults.get(CONF_PROMPT_TEMPLATE, DEFAULT_PROMPT_TEMPLATE),
@@ -210,7 +183,7 @@ class OpenLLMConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
         Returns:
             An options flow handler instance.
         """
-        return OpenLLMOptionsFlow(config_entry)
+        return OpenLLMOptionsFlow()
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -377,7 +350,6 @@ class OpenLLMConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
 
             # Options go in the options dict
             options: dict[str, Any] = {
-                CONF_LLM_HASS_API: user_input.get(CONF_LLM_HASS_API, "none"),
                 CONF_PROMPT_TEMPLATE: user_input.get(
                     CONF_PROMPT_TEMPLATE, DEFAULT_PROMPT_TEMPLATE
                 ),
@@ -396,7 +368,7 @@ class OpenLLMConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
 
         return self.async_show_form(
             step_id="configure",
-            data_schema=_build_options_schema(self.hass),
+            data_schema=_build_options_schema(),
             description_placeholders={
                 "model": self._selected_model,
             },
@@ -409,16 +381,6 @@ class OpenLLMOptionsFlow(OptionsFlow):
     This allows users to reconfigure the conversation agent settings
     after initial setup.
     """
-
-    config_entry: ConfigEntry
-
-    def __init__(self, config_entry: ConfigEntry) -> None:
-        """Initialize options flow.
-
-        Args:
-            config_entry: The config entry being configured.
-        """
-        self.config_entry = config_entry
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -439,10 +401,6 @@ class OpenLLMOptionsFlow(OptionsFlow):
         current_data = self.config_entry.data
 
         defaults = {
-            CONF_LLM_HASS_API: current_options.get(
-                CONF_LLM_HASS_API,
-                current_data.get(CONF_LLM_HASS_API, "none"),
-            ),
             CONF_PROMPT_TEMPLATE: current_options.get(
                 CONF_PROMPT_TEMPLATE,
                 current_data.get(CONF_PROMPT_TEMPLATE, DEFAULT_PROMPT_TEMPLATE),
@@ -467,5 +425,5 @@ class OpenLLMOptionsFlow(OptionsFlow):
 
         return self.async_show_form(
             step_id="init",
-            data_schema=_build_options_schema(self.hass, defaults),
+            data_schema=_build_options_schema(defaults),
         )
