@@ -353,9 +353,7 @@ class OpenLLMConfigFlow(ConfigFlow, domain=DOMAIN):
                     CONF_PROMPT_TEMPLATE, DEFAULT_PROMPT_TEMPLATE
                 ),
                 CONF_MAX_TOKENS: user_input.get(CONF_MAX_TOKENS, DEFAULT_MAX_TOKENS),
-                CONF_TEMPERATURE: user_input.get(
-                    CONF_TEMPERATURE, DEFAULT_TEMPERATURE
-                ),
+                CONF_TEMPERATURE: user_input.get(CONF_TEMPERATURE, DEFAULT_TEMPERATURE),
                 CONF_CONTEXT_MESSAGES: user_input.get(
                     CONF_CONTEXT_MESSAGES, DEFAULT_CONTEXT_MESSAGES
                 ),

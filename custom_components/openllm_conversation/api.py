@@ -180,9 +180,7 @@ class OpenLLMApiClient:
                 f"Failed to connect to {safe_url}: {err}"
             ) from err
         except TimeoutError as err:
-            raise OpenLLMConnectionError(
-                f"Timeout connecting to {safe_url}"
-            ) from err
+            raise OpenLLMConnectionError(f"Timeout connecting to {safe_url}") from err
 
     async def chat_completion(
         self,

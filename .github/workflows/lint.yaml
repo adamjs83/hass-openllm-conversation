@@ -42,8 +42,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install mypy homeassistant aiohttp voluptuous
+          pip install mypy aiohttp voluptuous
 
       - name: Run mypy
-        run: mypy custom_components/openllm_conversation --ignore-missing-imports
-        continue-on-error: true  # Advisory for now
+        run: mypy custom_components/openllm_conversation --ignore-missing-imports --python-version 3.11
+        continue-on-error: true  # Advisory - HA stubs not fully typed

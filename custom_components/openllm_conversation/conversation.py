@@ -95,9 +95,7 @@ class OpenLLMConversationEntity(
     _client: OpenLLMApiClient
     _conversation_history: dict[str, ConversationData]
 
-    def __init__(
-        self, config_entry: ConfigEntry, client: OpenLLMApiClient
-    ) -> None:
+    def __init__(self, config_entry: ConfigEntry, client: OpenLLMApiClient) -> None:
         """Initialize the conversation entity.
 
         Args:
