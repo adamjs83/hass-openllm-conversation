@@ -15,23 +15,17 @@ from custom_components.openllm_conversation.const import (
 
 
 @pytest.fixture(autouse=True)
-def auto_enable_custom_integrations(enable_custom_integrations):
+def auto_enable_custom_integrations(hass: HomeAssistant, enable_custom_integrations):
     """Enable custom integrations for all tests.
 
     This fixture ensures the enable_custom_integrations fixture from
     pytest-homeassistant-custom-component runs before our tests.
+    The hass dependency ensures Home Assistant is set up first.
     """
-    yield
-
-
-@pytest.fixture(autouse=True)
-async def setup_conversation(hass: HomeAssistant) -> None:
-    """Set up the conversation component."""
     # Mock the conversation component to avoid dependency issues
     hass.data["conversation"] = {}
-
-    # Register conversation as a loaded component
     hass.config.components.add("conversation")
+    yield
 
 
 @pytest.fixture
