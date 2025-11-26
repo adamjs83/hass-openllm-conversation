@@ -58,7 +58,6 @@ class OpenLLMAITaskEntity(AITaskEntity):
     """
 
     _attr_has_entity_name: bool = True
-    _attr_name: str = "AI Task"
     _attr_supported_features: AITaskEntityFeature = AITaskEntityFeature.GENERATE_DATA
 
     def __init__(self, config_entry: ConfigEntry, client: OpenLLMApiClient) -> None:
@@ -69,7 +68,9 @@ class OpenLLMAITaskEntity(AITaskEntity):
             client: Shared API client instance.
         """
         self._config_entry = config_entry
+        model = config_entry.data.get(CONF_MODEL, "Unknown")
         self._attr_unique_id = f"{config_entry.entry_id}_ai_task"
+        self._attr_name = f"{model} AI Task"
         self._client = client
 
     @property
